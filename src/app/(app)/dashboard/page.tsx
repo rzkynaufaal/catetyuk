@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Wallet, ArrowUpCircle, ArrowDownCircle, Activity } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { balance, monthRange, pctChange, rupiah, summarize, todayWIB, type Tx } from "@/lib/finance";
 import { PERIODS, periodRange } from "@/lib/periods";
 import LiveGreeting from "@/components/LiveGreeting";
+import CountUp from "@/components/CountUp";
 import BudgetAlerts from "@/components/BudgetAlerts";
 import { Donut, MonthlyBars } from "@/components/DashboardCharts";
 
@@ -66,6 +68,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   const box = "rounded-2xl border border-line bg-panel p-5";
   const lbl = "text-xs font-semibold uppercase tracking-wider text-mut";
+  const ico = "grid h-9 w-9 shrink-0 place-items-center rounded-xl";
   return (
     <main className="mx-auto max-w-6xl space-y-6 p-6">
       <LiveGreeting name={name} />
@@ -73,26 +76,41 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         <div className={`${box} p-10 text-center`}>
           <p className="text-mut">Belum ada transaksi. Mulai catat pemasukan atau pengeluaran pertamamu.</p>
           <div className="mt-4 flex justify-center gap-3">
-            <Link href="/pemasukan" className="rounded-lg bg-bd px-4 py-2 text-sm font-semibold">Catat Pemasukan</Link>
+            <Link href="/pemasukan" className="rounded-lg bg-bd px-4 py-2 text-sm font-semibold text-white">Catat Pemasukan</Link>
             <Link href="/pengeluaran" className="rounded-lg border border-line px-4 py-2 text-sm font-semibold">Catat Pengeluaran</Link>
           </div>
         </div>
       ) : (<>
         <div className="flex flex-wrap gap-2">
           {PERIODS.map(([k, l]) => (
-            <Link key={k} href={`/dashboard?p=${k}`} className={`rounded-lg border px-3 py-1.5 text-sm font-semibold ${k === key ? "border-bd bg-bd text-white" : "border-line text-mut hover:border-cg hover:text-white"}`}>{l}</Link>
+            <Link key={k} href={`/dashboard?p=${k}`} className={`rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${k === key ? "border-bd bg-bd text-white" : "border-line text-mut hover:border-cg hover:text-white"}`}>{l}</Link>
           ))}
         </div>
         <BudgetAlerts tx={tx} cn={cn} />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-2xl border border-cg/40 bg-gradient-to-br from-bd to-dgreen p-5">
-            <div className={lbl + " !text-white/70"}>Total Saldo</div>
-            <div className="mt-2 text-2xl font-extrabold tabular-nums">{rupiah(balance(tx))}</div>
+          <div className="hero rounded-2xl border border-cg/40 bg-gradient-to-br from-bd to-dgreen p-5">
+            <div className="flex items-start justify-between gap-2">
+              <div className={lbl + " !text-white/70"}>Total Saldo</div>
+              <div className={`${ico} bg-white/15 text-white`}><Wallet size={18} /></div>
+            </div>
+            <div className="mt-2 text-2xl font-extrabold"><CountUp value={balance(tx)} /></div>
             <div className="mt-1 text-xs text-white/70">Akumulasi s.d. hari ini (tidak terpengaruh filter)</div>
           </div>
-          <div className={box}><div className={lbl}>Total Pemasukan</div><div className="mt-2 text-2xl font-extrabold tabular-nums text-cg">{rupiah(s.income)}</div><Delta cur={s.income} prev={ps?.income} goodUp /></div>
-          <div className={box}><div className={lbl}>Total Pengeluaran</div><div className="mt-2 text-2xl font-extrabold tabular-nums text-red-400">{rupiah(s.expense)}</div><Delta cur={s.expense} prev={ps?.expense} goodUp={false} /></div>
-          <div className={box}><div className={lbl}>Arus Kas Bersih</div><div className={`mt-2 text-2xl font-extrabold tabular-nums ${s.net >= 0 ? "text-cg" : "text-red-400"}`}>{rupiah(s.net)}</div><div className="mt-1 text-xs text-mut">Pemasukan − pengeluaran periode ini</div></div>
+          <div className={box}>
+            <div className="flex items-start justify-between gap-2"><div className={lbl}>Total Pemasukan</div><div className={`${ico} bg-cg/15 text-cg`}><ArrowUpCircle size={18} /></div></div>
+            <div className="mt-2 text-2xl font-extrabold text-cg"><CountUp value={s.income} /></div>
+            <Delta cur={s.income} prev={ps?.income} goodUp />
+          </div>
+          <div className={box}>
+            <div className="flex items-start justify-between gap-2"><div className={lbl}>Total Pengeluaran</div><div className={`${ico} bg-red-400/15 text-red-400`}><ArrowDownCircle size={18} /></div></div>
+            <div className="mt-2 text-2xl font-extrabold text-red-400"><CountUp value={s.expense} /></div>
+            <Delta cur={s.expense} prev={ps?.expense} goodUp={false} />
+          </div>
+          <div className={box}>
+            <div className="flex items-start justify-between gap-2"><div className={lbl}>Arus Kas Bersih</div><div className={`${ico} ${s.net >= 0 ? "bg-cg/15 text-cg" : "bg-red-400/15 text-red-400"}`}><Activity size={18} /></div></div>
+            <div className={`mt-2 text-2xl font-extrabold ${s.net >= 0 ? "text-cg" : "text-red-400"}`}><CountUp value={s.net} /></div>
+            <div className="mt-1 text-xs text-mut">Pemasukan − pengeluaran periode ini</div>
+          </div>
         </div>
         <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
           <div className={box}>
@@ -107,12 +125,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             <h2 className="mb-2 font-bold">Transaksi Terbaru</h2>
             {tx.slice(0, 6).map((t) => (
               <div key={t.id} className="flex items-center gap-3 border-b border-line/60 py-3 last:border-0">
-                <div className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl font-bold ${t.type === "income" ? "bg-cg/15 text-cg" : "bg-red-400/15 text-red-400"}`}>{t.type === "income" ? "↑" : "↓"}</div>
+                <div className={`${ico} ${t.type === "income" ? "bg-cg/15 text-cg" : "bg-red-400/15 text-red-400"}`}>{t.type === "income" ? <ArrowUpCircle size={18} /> : <ArrowDownCircle size={18} />}</div>
                 <div className="min-w-0 flex-1"><div className="truncate text-sm font-semibold">{t.name}</div><div className="text-xs text-mut">{t.category_id ? cn[t.category_id] : "Tanpa kategori"} · {fd(t.tx_date)}</div></div>
                 <div className={`text-sm font-bold tabular-nums ${t.type === "income" ? "text-cg" : "text-red-400"}`}>{t.type === "income" ? "+" : "−"}{rupiah(t.amount)}</div>
               </div>
             ))}
-            <Link href="/riwayat" className="mt-3 inline-block rounded-lg border border-line px-3 py-1.5 text-sm font-semibold text-mut hover:text-white">Lihat Semua Transaksi</Link>
+            <Link href="/riwayat" className="mt-3 inline-block rounded-lg border border-line px-3 py-1.5 text-sm font-semibold text-mut transition hover:text-white">Lihat Semua Transaksi</Link>
           </div>
           <div className={box}>
             <h2 className="mb-3 font-bold">Wawasan Keuangan</h2>

@@ -1,2 +1,68 @@
-@tailwind base;@tailwind components;@tailwind utilities;
-body{@apply bg-rich text-white antialiased}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { --c-rich: 3 11 8; --c-panel: 7 23 16; --c-dgreen: 12 42 30; --c-bd: 0 106 78; --c-cg: 0 204 153; --c-line: 27 70 54; --c-mut: 143 179 164; --c-ink: 255 255 255; color-scheme: dark; }
+:root[data-theme="light"] { --c-rich: 242 249 246; --c-panel: 255 255 255; --c-dgreen: 227 243 236; --c-bd: 0 106 78; --c-cg: 0 133 95; --c-line: 205 227 216; --c-mut: 75 107 93; --c-ink: 4 18 13; color-scheme: light; }
+
+html { scroll-behavior: smooth; }
+body { @apply bg-rich text-ink antialiased; min-height: 100vh; transition: background-color .25s, color .25s; }
+/* Cahaya ambient di latar */
+body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(900px 520px at 88% -8%, rgb(var(--c-cg) / .11), transparent 60%), radial-gradient(760px 520px at -6% 108%, rgb(var(--c-bd) / .25), transparent 60%); }
+::selection { background: rgb(var(--c-cg) / .35); }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: rgb(var(--c-line)); border-radius: 8px; }
+
+/* ---------- Keyframes ---------- */
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+@keyframes fade { from { opacity: 0; } }
+@keyframes grow { from { width: 0; } }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@keyframes barUp { from { transform: scaleY(0); } }
+@keyframes draw { from { stroke-dasharray: 0 100; } }
+@keyframes sheet { from { opacity: 0; transform: translateY(24px); } }
+@keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+
+.page-in { animation: fade .35s ease backwards; }
+.fade-up { animation: rise .45s cubic-bezier(.2, .7, .2, 1) backwards; }
+.sheet-in { animation: sheet .25s ease-out backwards; }
+.floaty { animation: floaty 7s ease-in-out infinite; }
+.bar-up { transform-box: fill-box; transform-origin: bottom; animation: barUp .8s cubic-bezier(.2, .7, .2, 1) backwards; }
+.slice-draw { animation: draw 1s cubic-bezier(.2, .7, .2, 1) backwards; }
+.skel { background: linear-gradient(90deg, rgb(var(--c-line) / .45), rgb(var(--c-line) / .9), rgb(var(--c-line) / .45)); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
+
+/* ---------- Masuknya konten halaman (bertahap) ---------- */
+main > * { animation: rise .55s cubic-bezier(.2, .7, .2, 1) backwards; }
+main > *:nth-child(2) { animation-delay: .06s; } main > *:nth-child(3) { animation-delay: .12s; }
+main > *:nth-child(4) { animation-delay: .18s; } main > *:nth-child(5) { animation-delay: .24s; }
+main > *:nth-child(n+6) { animation-delay: .3s; }
+main .grid > * { animation: rise .5s cubic-bezier(.2, .7, .2, 1) backwards; }
+main .grid > *:nth-child(2) { animation-delay: .05s; } main .grid > *:nth-child(3) { animation-delay: .1s; }
+main .grid > *:nth-child(4) { animation-delay: .15s; } main .grid > *:nth-child(n+5) { animation-delay: .2s; }
+
+/* ---------- Kartu ---------- */
+main .rounded-2xl.bg-panel { box-shadow: inset 0 1px 0 rgb(255 255 255 / .04), 0 14px 34px -22px rgb(0 0 0 / .65); transition: transform .25s ease, border-color .25s, box-shadow .25s; }
+main .rounded-2xl.bg-panel:hover { border-color: rgb(var(--c-cg) / .4); }
+main .grid > .rounded-2xl.bg-panel:hover { transform: translateY(-3px); box-shadow: inset 0 1px 0 rgb(255 255 255 / .05), 0 18px 40px -20px rgb(var(--c-cg) / .35); }
+
+/* ---------- Tombol, input, tabel, progress ---------- */
+button.bg-bd, a.bg-bd { background-image: linear-gradient(135deg, rgb(var(--c-bd)), rgb(var(--c-cg) / .85)); box-shadow: 0 8px 20px -8px rgb(var(--c-cg) / .6); transition: transform .15s, box-shadow .2s, filter .2s; }
+button.bg-bd:hover, a.bg-bd:hover { transform: translateY(-1px); filter: brightness(1.08); }
+button:active:not(:disabled), a.bg-bd:active { transform: scale(.97); }
+button, a { -webkit-tap-highlight-color: transparent; }
+button.border-line:hover:not(:disabled), a.border-line:hover { border-color: rgb(var(--c-cg)); }
+input:focus, select:focus, textarea:focus { box-shadow: 0 0 0 3px rgb(var(--c-cg) / .18); }
+tbody tr { transition: background-color .15s; }
+tbody tr:hover { background: rgb(var(--c-dgreen) / .55); }
+.h-full.rounded-full { animation: grow .9s cubic-bezier(.2, .7, .2, 1) backwards; }
+
+/* ---------- Penyesuaian tema terang ---------- */
+[data-theme="light"] .text-white { color: rgb(var(--c-ink)); }
+[data-theme="light"] .hover\:text-white:hover { color: rgb(var(--c-ink)); }
+[data-theme="light"] .bg-bd { color: #fff; }
+[data-theme="light"] .hero, [data-theme="light"] .hero * { color: #fff !important; }
+[data-theme="light"] .hero { background-image: linear-gradient(135deg, #006A4E, #0B3D2E); }
+[data-theme="light"] main .rounded-2xl.bg-panel { box-shadow: 0 1px 2px rgb(0 0 0 / .05), 0 10px 28px -18px rgb(0 40 30 / .25); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
